@@ -42,6 +42,17 @@ def analyze(message, lang):
         return verdict, f"(Sarvam call failed: {e})", None
 
 
+def transcribe(path):
+    if not path:
+        return ""
+    if not sarvam.have_key():
+        return "Set SARVAM_API_KEY to transcribe voice."
+    try:
+        return sarvam.stt(path)
+    except Exception as e:  # noqa: BLE001
+        return f"(Transcription failed: {e})"
+
+
 EXAMPLES = [
     ["आपके नाम से एक पार्सल पकड़ा गया है। आप डिजिटल अरेस्ट में हैं, अभी ₹50000 भेजें।", "hindi"],
     ["Sir aapka SBI account block ho jayega, link click karke OTP bhejo.", "hinglish"],
@@ -57,6 +68,8 @@ with gr.Blocks(title="Kavach") as demo:
     )
     with gr.Row():
         with gr.Column():
+            audio_in = gr.Audio(sources=["microphone", "upload"], type="filepath",
+                                label="🎙️ Or speak / upload a suspicious voice note or call clip")
             msg = gr.Textbox(label="Paste a suspicious SMS / WhatsApp message", lines=4)
             lang = gr.Dropdown(LANGS, value="hindi", label="Explain in")
             btn = gr.Button("Check message", variant="primary")
@@ -66,6 +79,7 @@ with gr.Blocks(title="Kavach") as demo:
             out_e = gr.Textbox(label="Why (in your language)", lines=4)
             out_a = gr.Audio(label="Spoken warning", autoplay=True)
     btn.click(analyze, [msg, lang], [out_v, out_e, out_a])
+    audio_in.change(transcribe, audio_in, msg).then(analyze, [msg, lang], [out_v, out_e, out_a])
 
     gr.Markdown("### Privacy vs accuracy (simulated federation, 20 phones, one language each)")
     if os.path.exists("results.png"):
