@@ -1,9 +1,9 @@
 """Thin Sarvam AI client: chat (LLM) + text-to-speech.
 
 Set SARVAM_API_KEY in your environment. Model names can be overridden:
-  SARVAM_CHAT_MODEL (default: sarvam-m)
-  SARVAM_TTS_MODEL  (default: bulbul:v2)
-  SARVAM_TTS_SPEAKER (default: anushka)
+  SARVAM_CHAT_MODEL  (default: sarvam-105b-conversations)
+  SARVAM_TTS_MODEL   (default: bulbul:v4-flash)
+  SARVAM_TTS_SPEAKER (default: unset -> Sarvam's default voice)
 """
 import base64
 import os
@@ -13,9 +13,9 @@ import time
 import requests
 
 BASE = "https://api.sarvam.ai"
-CHAT_MODEL = os.getenv("SARVAM_CHAT_MODEL", "sarvam-m")
-TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
-TTS_SPEAKER = os.getenv("SARVAM_TTS_SPEAKER", "anushka")
+CHAT_MODEL = os.getenv("SARVAM_CHAT_MODEL", "sarvam-105b-conversations")
+TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v4-flash")
+TTS_SPEAKER = os.getenv("SARVAM_TTS_SPEAKER", "")
 
 LANG_CODES = {
     "hindi": "hi-IN",
@@ -42,6 +42,13 @@ def _headers():
     }
 
 
+def _post(path, payload, timeout=60):
+    r = requests.post(f"{BASE}{path}", json=payload, headers=_headers(), timeout=timeout)
+    if not r.ok:
+        raise RuntimeError(f"{r.status_code} {r.reason}: {r.text[:300]}")
+    return r.json()
+
+
 def chat(system: str, user: str, temperature: float = 0.8, max_tokens: int = 1500, retries: int = 3) -> str:
     payload = {
         "model": CHAT_MODEL,
@@ -55,27 +62,33 @@ def chat(system: str, user: str, temperature: float = 0.8, max_tokens: int = 150
     last = None
     for i in range(retries):
         try:
-            r = requests.post(f"{BASE}/v1/chat/completions", json=payload, headers=_headers(), timeout=60)
-            r.raise_for_status()
-            text = r.json()["choices"][0]["message"]["content"] or ""
-            # sarvam-m may emit a reasoning block
+            data = _post("/v1/chat/completions", payload)
+            text = data["choices"][0]["message"]["content"] or ""
+            # strip any reasoning block
             text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
             return text
         except Exception as e:  # noqa: BLE001
             last = e
+            if "400" in str(e)[:5] or "422" in str(e)[:5]:
+                break  # bad request will not fix itself on retry
             time.sleep(1.5 * (i + 1))
     raise RuntimeError(f"Sarvam chat failed: {last}")
 
 
 def tts(text: str, lang: str = "hindi") -> bytes:
-    """Return WAV bytes for `text` spoken in `lang`."""
+    """Return WAV bytes for `text` spoken in `lang`. Tries a few request shapes/models."""
     code = LANG_CODES.get(lang.lower(), "hi-IN")
-    payload = {
-        "inputs": [text[:480]],
-        "target_language_code": code,
-        "speaker": TTS_SPEAKER,
-        "model": TTS_MODEL,
-    }
-    r = requests.post(f"{BASE}/text-to-speech", json=payload, headers=_headers(), timeout=60)
-    r.raise_for_status()
-    return base64.b64decode(r.json()["audios"][0])
+    text = text[:450]
+    models = [TTS_MODEL] + [m for m in ("bulbul:v3", "bulbul:v2") if m != TTS_MODEL]
+    last = None
+    for model in models:
+        for lang_key in ("target_language_code", "language_code"):
+            payload = {"text": text, lang_key: code, "model": model}
+            if TTS_SPEAKER:
+                payload["speaker"] = TTS_SPEAKER
+            try:
+                data = _post("/text-to-speech", payload)
+                return base64.b64decode(data["audios"][0])
+            except Exception as e:  # noqa: BLE001
+                last = e
+    raise RuntimeError(f"Sarvam TTS failed: {last}")
