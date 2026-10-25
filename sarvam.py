@@ -75,6 +75,16 @@ def chat(system: str, user: str, temperature: float = 0.8, max_tokens: int = 150
     raise RuntimeError(f"Sarvam chat failed: {last}")
 
 
+def _mime(path: str) -> str:
+    import mimetypes
+    guess = mimetypes.guess_type(path)[0]
+    if guess and guess.startswith("audio"):
+        return guess
+    ext = os.path.splitext(path)[1].lower()
+    return {".wav": "audio/wav", ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".webm": "audio/webm",
+            ".ogg": "audio/ogg", ".flac": "audio/flac", ".aac": "audio/aac"}.get(ext, "audio/wav")
+
+
 def stt(path: str) -> str:
     """Transcribe an audio file (voice note / call snippet) with Sarvam speech-to-text.
     Language is auto-detected."""
@@ -85,7 +95,7 @@ def stt(path: str) -> str:
                 r = requests.post(
                     f"{BASE}/speech-to-text",
                     headers={"api-subscription-key": os.environ["SARVAM_API_KEY"]},
-                    files={"file": (os.path.basename(path), f)},
+                    files={"file": (os.path.basename(path), f, _mime(path))},
                     data={"model": model, "language_code": "unknown"},
                     timeout=90,
                 )
