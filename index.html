@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kavach | Private scam shield for Indian languages</title>
+<meta name="description" content="Federated, differentially-private scam detection for Hindi, Hinglish, Tamil, Bengali and Marathi, with Sarvam AI explanations and voice alerts.">
+<style>
+  :root{
+    --bg:#fafaf7; --card:#ffffff; --text:#1d2330; --muted:#5b6475; --line:#e4e6ec;
+    --accent:#1f6feb; --danger:#c0392b; --ok:#1a7f4b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f131b; --card:#171c27; --text:#e8ebf2; --muted:#9aa3b5; --line:#262d3b; --accent:#5b9bff; --danger:#ff7a6b; --ok:#4cc38a; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari","Noto Sans Tamil",sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:0 16px}
+  header{padding:56px 0 24px}
+  h1{font-size:clamp(2rem,6vw,3rem);margin:0 0 8px;letter-spacing:-.02em}
+  .tag{color:var(--muted);font-size:1.15rem;max-width:620px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  .btn{display:inline-block;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid var(--line);color:var(--text);background:var(--card)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  section{padding:28px 0;border-top:1px solid var(--line)}
+  h2{margin:0 0 12px;font-size:1.4rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:1rem}
+  .card p{margin:0;color:var(--muted);font-size:.95rem}
+  .sample{font-size:1.05rem;border-left:4px solid var(--danger);padding:10px 14px;background:var(--card);border-radius:0 8px 8px 0;margin:8px 0}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .stat b{display:block;font-size:1.8rem}
+  .stat span{color:var(--muted);font-size:.85rem}
+  img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:#fff}
+  pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;font-size:.88rem}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+  .flow span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.9rem}
+  .flow i{color:var(--muted);font-style:normal}
+  .note{color:var(--muted);font-size:.92rem}
+  footer{padding:28px 0 48px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🛡️ Kavach</h1>
+  <p class="tag">Scam protection that works in your language, speaks to your grandmother, and never reads your messages.</p>
+  <div class="cta">
+    <!-- TODO: replace with your repo URL -->
+    <a class="btn primary" href="https://github.com/YOUR_USERNAME/kavach">View on GitHub</a>
+    <a class="btn" href="#results">See results</a>
+  </div>
+</header>
+
+<section>
+  <h2>The problem</h2>
+  <p>Digital-arrest, UPI and KYC scams reach people in Hindi, Tamil, Bengali, Marathi and code-mixed Hinglish. Most detectors are English-first, and a good one needs access to private messages that nobody wants to upload to a server.</p>
+  <div class="sample">आपके नाम से एक पार्सल पकड़ा गया है। आप डिजिटल अरेस्ट में हैं, अभी ₹50000 भेजें।</div>
+  <div class="sample">Sir aapka SBI account block ho jayega, link click karke OTP bhejo.</div>
+</section>
+
+<section>
+  <h2>How it works</h2>
+  <div class="flow">
+    <span>Sarvam LLM writes Indic scam data</span><i>→</i>
+    <span>Each phone trains on its own language</span><i>→</i>
+    <span>Updates clipped + noised (DP)</span><i>→</i>
+    <span>Server averages, never sees messages</span><i>→</i>
+    <span>Sarvam explains + speaks the warning</span>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Federated learning</h3><p>20 simulated phones, each holding messages in a single language (non-IID). Only model updates are shared.</p></div>
+    <div class="card"><h3>Differential privacy</h3><p>Per-phone update clipping plus Gaussian noise (DP-FedAvg), with ε tracked by RDP accounting.</p></div>
+    <div class="card"><h3>Char n-gram model</h3><p>Hashed character n-grams handle spelling variation and transliterated Hinglish with a tiny on-device model.</p></div>
+    <div class="card"><h3>Sarvam AI</h3><p>LLM for data generation and plain-language explanations, text-to-speech for spoken alerts in the user's language.</p></div>
+    <div class="card"><h3>Adversarial loop</h3><p>An LLM scammer rewrites scams to dodge the detector; evasions are fed back to retrain the federation.</p></div>
+  </div>
+</section>
+
+<section id="results">
+  <h2>Results</h2>
+  <div class="stats">
+    <div class="stat"><b id="s-local">–</b><span>Local only</span></div>
+    <div class="stat"><b id="s-fed">–</b><span>Federated</span></div>
+    <div class="stat"><b id="s-dp">–</b><span id="s-dp-l">Federated + DP</span></div>
+    <div class="stat"><b id="s-central">–</b><span>Centralized (no privacy)</span></div>
+  </div>
+  <img src="results.png" alt="Accuracy of local, federated and centralized models, and accuracy against privacy budget epsilon">
+  <p class="note" id="res-note">Numbers load from results.json produced by fed.py.</p>
+</section>
+
+<section>
+  <h2>Run it</h2>
+<pre>pip install -r requirements.txt
+export SARVAM_API_KEY=your_key
+python gen_data.py   # Sarvam writes the dataset
+python fed.py        # federated + DP training
+python app.py        # demo UI</pre>
+</section>
+
+<section>
+  <h2>Honest limits</h2>
+  <p class="note">The federation is simulated on one machine and the dataset is LLM-generated, not real SMS. With only 20 simulated phones the privacy budgets are large, so this demonstrates the mechanism rather than a strong guarantee. Next steps: real on-device training, larger federations, and human-verified Indic scam data.</p>
+</section>
+
+<footer>Built for the Sarvam AI Buildathon.</footer>
+</div>
+
+<script>
+  const pct = v => (v*100).toFixed(0) + "%";
+  fetch("results.json").then(r => r.json()).then(d => {
+    document.getElementById("s-local").textContent = pct(d.local_only.overall);
+    document.getElementById("s-fed").textContent = pct(d.federated.overall);
+    document.getElementById("s-central").textContent = pct(d.centralized.overall);
+    const mid = d.federated_dp.find(x => x.sigma === 1.0) || d.federated_dp[0];
+    document.getElementById("s-dp").textContent = pct(mid.overall);
+    document.getElementById("s-dp-l").textContent = "Federated + DP (ε≈" + mid.epsilon.toFixed(0) + ")";
+    document.getElementById("res-note").textContent =
+      d.n_clients + " simulated phones, " + d.rounds + " rounds. Test set is held out and shared across all methods.";
+  }).catch(() => {
+    document.getElementById("res-note").textContent = "Run fed.py to generate results.json, then reload.";
+  });
+</script>
+</body>
+</html>
