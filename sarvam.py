@@ -75,6 +75,28 @@ def chat(system: str, user: str, temperature: float = 0.8, max_tokens: int = 150
     raise RuntimeError(f"Sarvam chat failed: {last}")
 
 
+def stt(path: str) -> str:
+    """Transcribe an audio file (voice note / call snippet) with Sarvam speech-to-text.
+    Language is auto-detected."""
+    last = None
+    for model in ("saaras:v4", "saaras:v3"):
+        try:
+            with open(path, "rb") as f:
+                r = requests.post(
+                    f"{BASE}/speech-to-text",
+                    headers={"api-subscription-key": os.environ["SARVAM_API_KEY"]},
+                    files={"file": (os.path.basename(path), f)},
+                    data={"model": model, "language_code": "unknown"},
+                    timeout=90,
+                )
+            if not r.ok:
+                raise RuntimeError(f"{r.status_code} {r.reason}: {r.text[:300]}")
+            return (r.json().get("transcript") or "").strip()
+        except Exception as e:  # noqa: BLE001
+            last = e
+    raise RuntimeError(f"Sarvam STT failed: {last}")
+
+
 def tts(text: str, lang: str = "hindi") -> bytes:
     """Return WAV bytes for `text` spoken in `lang`. Tries a few request shapes/models."""
     code = LANG_CODES.get(lang.lower(), "hi-IN")
